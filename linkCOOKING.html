@@ -1,11 +1,454 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>รวมสูตรอาหาร - Thai Recipes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .recipe-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .recipe-content {
+            padding: 20px;
+        }
+
+        .recipe-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .recipe-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .difficulty {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .difficulty.ง่าย {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .difficulty.ปานกลาง {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .difficulty.ยาก {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .ingredients-preview {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 800px;
+            margin: 50px auto;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1001;
+        }
+
+        .modal-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #667eea;
+            margin: 20px 0 10px 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .steps-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+
+        .steps-list li {
+            counter-increment: step-counter;
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .steps-list li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .no-results {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            margin-top: 50px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Hello! I'm pongsakron</h2>
+    <div class="container">
+        <header>
+            <h1>🍳 รวมสูตรอาหารไทย</h1>
+            <p class="subtitle">สูตรอาหารไทยรสเด็ด ทำง่าย อร่อยทุกเมนู</p>
+        </header>
+
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 ค้นหาเมนูอาหาร...">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-difficulty="all">ทั้งหมด</button>
+                <button class="filter-btn" data-difficulty="ง่าย">ง่าย</button>
+                <button class="filter-btn" data-difficulty="ปานกลาง">ปานกลาง</button>
+                <button class="filter-btn" data-difficulty="ยาก">ยาก</button>
+            </div>
+        </div>
+
+        <div class="recipes-grid" id="recipesGrid"></div>
+        <div class="no-results" id="noResults" style="display: none;">ไม่พบเมนูที่ค้นหา</div>
+    </div>
+
+    <div class="modal" id="recipeModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <img class="modal-image" id="modalImage" src="" alt="">
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const recipes = [
+            {
+                id: 1,
+                name: "ผัดกะเพราหมู",
+                ingredients: "หมูสับ, ใบกะเพรา, พริก, กระเทียม, น้ำปลา",
+                steps: "ผัดพริกกระเทียม ใส่หมู ปรุงรส ใส่ใบกะเพรา",
+                time: 15,
+                difficulty: "ง่าย",
+                image: "https://www.maggi.co.th/sites/default/files/srh_recipes/c07747088f182ba6cfabe8be6724229e.jpg"
+            },
+            {
+                id: 2,
+                name: "ไข่เจียว",
+                ingredients: "ไข่ไก่, น้ำปลา, น้ำมัน",
+                steps: "ตีไข่ ปรุงรส ทอดจนเหลือง",
+                time: 10,
+                difficulty: "ง่าย",
+                image: "https://recipe.sgethai.com/wp-content/uploads/2025/04/160425-Thai-Pork-Omelet-cover.webp"
+            },
+            {
+                id: 3,
+                name: "ต้มยำกุ้ง",
+                ingredients: "กุ้ง, ตะไคร้, ใบมะกรูด, พริก, มะนาว,",
+                steps: "ต้มน้ำ ใส่เครื่องต้มยำ ใส่กุ้ง ปรุงรส",
+                time: 25,
+                difficulty: "ปานกลาง",
+                image: "https://assets.unileversolutions.com/recipes-v2/242154.png"
+            },
+            {
+                id: 4,
+                name: "ข้าวผัด",
+                ingredients: "ข้าวสวย, หมู, ใข่, ซีอิ๊ว, กระเทียม",
+                steps: "ผัดกระเทียม ใส่หมู ใส่ไข่ ใส่ข้าว ปรุงรส",
+                time: 20,
+                difficulty: "ง่าย",
+                image: "https://img.wongnai.com/p/1920x0/2019/12/19/d5537700a7274ac09964b6a51dd0a9f6.jpg"
+            },
+            {
+                id: 5,
+                name: "แกงเขียวหวานไก่",
+                ingredients: "ไก่, กะทิ, พริกแกงเขียวหวาน, มะเขือ",
+                steps: "ผัดพริกแกง ใส่กะทิ ใส่ไก่ เคี่ยวจนสุก",
+                time: 40,
+                difficulty: "ปานกลาง",
+                image: "https://recipe.sgethai.com/wp-content/uploads/2019/03/26022025-chicken-green-curry-2.webp"
+            }
+        ];
+
+        let currentFilter = 'all';
+
+        function displayRecipes(recipesToShow) {
+            const grid = document.getElementById('recipesGrid');
+            const noResults = document.getElementById('noResults');
+            
+            if (recipesToShow.length === 0) {
+                grid.style.display = 'none';
+                noResults.style.display = 'block';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            noResults.style.display = 'none';
+            
+            grid.innerHTML = recipesToShow.map(recipe => `
+                <div class="recipe-card" onclick="openModal(${recipe.id})">
+                    <img class="recipe-image" src="${recipe.image}" alt="${recipe.name}">
+                    <div class="recipe-content">
+                        <h3 class="recipe-title">${recipe.name}</h3>
+                        <div class="recipe-meta">
+                            <div class="meta-item">
+                                <span>⏱️ ${recipe.time} นาที</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="difficulty ${recipe.difficulty}">${recipe.difficulty}</span>
+                            </div>
+                        </div>
+                        <div class="ingredients-preview">
+                            <strong>วัตถุดิบ:</strong> ${recipe.ingredients.split(',').slice(0, 3).join(', ')}...
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterRecipes() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = recipes.filter(recipe => {
+                const matchesSearch = recipe.name.toLowerCase().includes(searchTerm) || 
+                                    recipe.ingredients.toLowerCase().includes(searchTerm);
+                const matchesDifficulty = currentFilter === 'all' || recipe.difficulty === currentFilter;
+                return matchesSearch && matchesDifficulty;
+            });
+            
+            displayRecipes(filtered);
+        }
+
+        function openModal(id) {
+            const recipe = recipes.find(r => r.id === id);
+            const modal = document.getElementById('recipeModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalBody = document.getElementById('modalBody');
+
+            modalImage.src = recipe.image;
+            modalBody.innerHTML = `
+                <h2 class="modal-title">${recipe.name}</h2>
+                <div class="recipe-meta">
+                    <div class="meta-item">
+                        <span>⏱️ เวลาทำ: ${recipe.time} นาที</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="difficulty ${recipe.difficulty}">ระดับ: ${recipe.difficulty}</span>
+                    </div>
+                </div>
+                
+                <h3 class="section-title">🥘 วัตถุดิบ</h3>
+                <p>${recipe.ingredients}</p>
+                
+                <h3 class="section-title">👨‍🍳 วิธีทำ</h3>
+                <ol class="steps-list">
+                    ${recipe.steps.split(' ').map((step, i) => `<li>${step}</li>`).join('')}
+                </ol>
+            `;
+
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('recipeModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        document.getElementById('searchInput').addEventListener('input', filterRecipes);
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFilter = this.dataset.difficulty;
+                filterRecipes();
+            });
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('recipeModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        displayRecipes(recipes);
+    </script>
 </body>
 </html>
